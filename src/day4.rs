@@ -7,16 +7,16 @@ pub fn day_4() {
         let mut has_double = false;
         let mut has_exact_double = false;
         let digits = split_to_digits(i);
-        let mut last_digit = digits[0];
+        let mut last_digit = digits[5];
 
-        for digit in &digits[1..6] {
-            if digit < &last_digit {
+        for index in (0..5).rev() {
+            if digits[index] < last_digit {
                 decreases = true
             }
-            if &last_digit == digit {
+            if last_digit == digits[index] {
                 has_double = true
             }
-            last_digit = *digit
+            last_digit = digits[index]
         }
 
         //this is horrendous lmao
@@ -47,11 +47,10 @@ pub fn day_4() {
 
 fn split_to_digits(number: u32) -> Vec<u32> {
     let mut n = number;
-    let mut digits = Vec::new();
+    let mut digits = Vec::with_capacity(6);
     while n != 0 {
         digits.push(n % 10);
         n /= 10
     }
-    digits.reverse();
     digits
 }
