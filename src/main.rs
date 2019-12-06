@@ -1,3 +1,4 @@
+#![allow(dead_code)] // I want to be able to comment out test cases without warnings
 mod day1;
 mod day2;
 mod day3;

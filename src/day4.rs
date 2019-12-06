@@ -1,3 +1,6 @@
+//Clippy does not like that boolean expression, but doesn't actually have a better suggestion.
+#[allow(clippy::nonminimal_bool)]
+
 pub fn day_4() {
     let mut num_passwords_p1 = 0;
     let mut num_passwords_p2 = 0;

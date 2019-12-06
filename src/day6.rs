@@ -23,7 +23,9 @@ pub fn day_6() {
 
     let orbit_graph = create_graph(&orbit_map);
 
+    #[allow(non_snake_case)] //I do what I want, rustc :P
     let (parent_of_YOU, _) = orbit_graph.get("YOU").unwrap();
+    #[allow(non_snake_case)]
     let (parent_of_SAN, _) = orbit_graph.get("SAN").unwrap();
 
     let num_transfers = distance_between(&orbit_graph, parent_of_SAN, parent_of_YOU);
