@@ -50,6 +50,7 @@ pub mod intcode {
         halt: bool,
         inputs: Vec<i32>,
         outputs: Vec<i32>,
+        suspend: bool,
     }
 
     impl Computer {
@@ -60,15 +61,25 @@ pub mod intcode {
                 halt: false,
                 inputs,
                 outputs: Vec::new(),
+                suspend: false,
             }
         }
 
         pub fn run(&mut self) -> &Vec<i32> {
-            while !self.halt {
+            while !(self.halt ||self.suspend) {
                 self.run_step();
             }
 
             &self.outputs
+        }
+
+        pub fn receive_input(&mut self, input: i32) {
+            self.inputs.push(input);
+            self.suspend = false;
+        }
+
+        pub fn has_halted (&self) -> bool {
+            self.halt
         }
 
         fn run_step(&mut self) {
@@ -88,10 +99,15 @@ pub mod intcode {
                     self.instruction_pointer += 4
                 }
                 Opcode::Read(p1) => {
-                    let input = self.inputs.pop().expect("Ran out of Input!");
+                    let input = self.inputs.pop();
 
-                    self.write_param(input, p1);
-                    self.instruction_pointer += 2
+                    match input {
+                        Some(i) => {
+                            self.write_param(i, p1);
+                            self.instruction_pointer += 2;
+                        }
+                        None => self.suspend = true
+                    }
                 }
                 Opcode::Print(p1) => {
                     self.outputs.push(self.read_param_value(p1));
