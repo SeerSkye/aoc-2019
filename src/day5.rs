@@ -7,13 +7,16 @@ pub fn day_5() {
         .map(str::parse::<i32>)
         .map(|x| x.unwrap())
         .collect();
-    let mut computer = intcode::Computer::new(input);
-    computer.run();
+    let mut computer1 = intcode::Computer::new(input.clone(), vec![1]);
+    let part1 = computer1.run();
+    println!("The soultion to part 1 is: {}", part1.last().unwrap());
+
+    let mut computer2 = intcode::Computer::new(input.clone(), vec![5]);
+    let part2 = computer2.run();
+    println!("The soultion to part 1 is: {}", part2.last().unwrap())
 }
 
-mod intcode {
-    use std::io;
-
+pub mod intcode {
     enum Parameter {
         Literal(i32),
         Address(usize),
@@ -45,21 +48,27 @@ mod intcode {
         memory: Vec<i32>,
         instruction_pointer: usize,
         halt: bool,
+        inputs: Vec<i32>,
+        outputs: Vec<i32>,
     }
 
     impl Computer {
-        pub fn new(initial_memory: Vec<i32>) -> Computer {
+        pub fn new(memory: Vec<i32>, inputs: Vec<i32>) -> Computer {
             Computer {
-                memory: initial_memory,
+                memory,
                 instruction_pointer: 0,
                 halt: false,
+                inputs,
+                outputs: Vec::new(),
             }
         }
 
-        pub fn run(&mut self) {
+        pub fn run(&mut self) -> &Vec<i32> {
             while !self.halt {
                 self.run_step();
             }
+
+            &self.outputs
         }
 
         fn run_step(&mut self) {
@@ -79,20 +88,13 @@ mod intcode {
                     self.instruction_pointer += 4
                 }
                 Opcode::Read(p1) => {
-                    let mut input = String::new();
+                    let input = self.inputs.pop().expect("Ran out of Input!");
 
-                    io::stdin()
-                        .read_line(&mut input)
-                        .expect("Could not read input!");
-
-                    let parsed_input: i32 =
-                        input.trim().parse().expect("Input must be an integer!");
-
-                    self.write_param(parsed_input, p1);
+                    self.write_param(input, p1);
                     self.instruction_pointer += 2
                 }
                 Opcode::Print(p1) => {
-                    println!("{}", self.read_param_value(p1));
+                    self.outputs.push(self.read_param_value(p1));
                     self.instruction_pointer += 2
                 }
                 Opcode::JumpNonZero(p1, p2) => {
