@@ -44,6 +44,9 @@ pub mod intcode {
         Halt,
     }
 
+    ///An intcode computer. Intcode computers operate according to the specification from the problems in
+    /// advent of code 2019. Our implementation also has the ability to suspend itself if it lacks input needed
+    /// to continue.
     pub struct Computer {
         memory: Vec<i32>,
         instruction_pointer: usize,
@@ -54,6 +57,9 @@ pub mod intcode {
     }
 
     impl Computer {
+        ///Initializes a new intcode computer. `memory` is the initial memory state, and `inputs` is the initial
+        /// input stack. Remember that the input buffer is a *stack*, meaning the computer will read from the
+        /// given buffer from back to front.
         pub fn new(memory: Vec<i32>, inputs: Vec<i32>) -> Computer {
             Computer {
                 memory,
@@ -65,6 +71,9 @@ pub mod intcode {
             }
         }
 
+        ///Runs an intcode computer until it either suspends itself or halts, returning a reference to its
+        /// output buffer. You can poll the state of the machine after it returns control with `has_halted` and
+        /// `is_suspended`. Will simply return a reference to the output buffer if it's already halted or suspended.
         pub fn run(&mut self) -> &Vec<i32> {
             while !(self.halt ||self.suspend) {
                 self.run_step();
@@ -73,13 +82,22 @@ pub mod intcode {
             &self.outputs
         }
 
+        ///Pushes a new value onto the input stack. Remember that if you call this multiple times between run
+        /// statements it will read the values in reverse order, as the input is processed as a LIFO stack.
+        /// You must call run again to resume execution after pushing a new value onto the stack.
         pub fn receive_input(&mut self, input: i32) {
             self.inputs.push(input);
             self.suspend = false;
         }
 
+        ///Returns whether the intcode machine has halted.
         pub fn has_halted (&self) -> bool {
             self.halt
+        }
+
+        ///Returns whether the intcode machine is suspended and awaiting input.
+        pub fn is_suspended (&self) -> bool {
+            self.suspend
         }
 
         fn run_step(&mut self) {
