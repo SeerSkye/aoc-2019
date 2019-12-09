@@ -20,6 +20,7 @@ pub mod intcode {
     enum Parameter {
         Literal(i64),
         Address(usize),
+        Relative(i64),
     }
 
     impl Parameter {
@@ -27,6 +28,7 @@ pub mod intcode {
             match mode {
                 0 => Parameter::Address(val as usize),
                 1 => Parameter::Literal(val),
+                2 => Parameter::Relative(val),
                 _ => panic!("Unrecognized Addressing Mode!"),
             }
         }
@@ -41,6 +43,7 @@ pub mod intcode {
         JumpEqualZero(Parameter, Parameter),
         LessThan(Parameter, Parameter, Parameter),
         Equals(Parameter, Parameter, Parameter),
+        AdjustRO(Parameter),
         Halt,
     }
 
@@ -54,6 +57,7 @@ pub mod intcode {
         inputs: Vec<i64>,
         outputs: Vec<i64>,
         suspend: bool,
+        relative_offset: i64,
     }
 
     impl Computer {
@@ -68,6 +72,7 @@ pub mod intcode {
                 inputs,
                 outputs: Vec::new(),
                 suspend: false,
+                relative_offset: 0
             }
         }
 
@@ -105,6 +110,9 @@ pub mod intcode {
                 return;
             }
 
+            //make sure we have space to run the largest instruction possible.
+            self.resize_for_index(self.instruction_pointer + 3);
+
             match self.parse_opcode() {
                 Opcode::Add(p1, p2, p3) => {
                     let sum = self.read_param_value(p1) + self.read_param_value(p2);
@@ -128,7 +136,8 @@ pub mod intcode {
                     }
                 }
                 Opcode::Print(p1) => {
-                    self.outputs.push(self.read_param_value(p1));
+                    let val = self.read_param_value(p1);
+                    self.outputs.push(val);
                     self.instruction_pointer += 2
                 }
                 Opcode::JumpNonZero(p1, p2) => {
@@ -160,6 +169,10 @@ pub mod intcode {
                         self.write_param(0, p3)
                     }
                     self.instruction_pointer += 4
+                }
+                Opcode::AdjustRO(p1) => {
+                    self.relative_offset = self.read_param_value(p1) + self.relative_offset as i64;
+                    self.instruction_pointer += 2;
                 }
                 Opcode::Halt => self.halt = true,
             }
@@ -246,22 +259,54 @@ pub mod intcode {
                         Parameter::make_param(mode_p3, self.memory[self.instruction_pointer + 3]),
                     )
                 }
+                9 => {
+                    let mode_p1 = (self.memory[self.instruction_pointer] / 100) % 10;
+
+                    Opcode::AdjustRO(
+                        Parameter::make_param(mode_p1, self.memory[self.instruction_pointer + 1])
+                    )
+                }
                 99 => Opcode::Halt,
                 _ => panic!("Invalid opcode under instruction pointer!"),
             }
         }
 
-        fn read_param_value(&self, param: Parameter) -> i64 {
+        ///Resizes memory if there's not enough space.
+        fn resize_for_index(&mut self, index: usize) {
+            if self.memory.len() < index + 2 {
+                self.memory.resize(index + 2, 0)
+            }
+        }
+
+        fn read_param_value(&mut self, param: Parameter) -> i64 {
             match param {
                 Parameter::Literal(i) => i,
-                Parameter::Address(i) => self.memory[i],
+                Parameter::Address(i) => {
+                    self.resize_for_index(i);
+                    self.memory[i]
+                }
+                Parameter::Relative(i) => {
+                    let index = self.relative_offset + i;
+                    assert!(index >= 0); //crash if index is bad. at some point proper error handling would be nice
+                    self.resize_for_index(index as usize);
+                    self.memory[index as usize]
+                }
             }
         }
 
         fn write_param(&mut self, src: i64, dest: Parameter) {
             match dest {
                 Parameter::Literal(_) => panic!("Cannot write in immediate mode!!"),
-                Parameter::Address(i) => self.memory[i] = src,
+                Parameter::Address(i) => {
+                    self.resize_for_index(i);
+                    self.memory[i] = src
+                }
+                Parameter::Relative(i) => {
+                    let index = self.relative_offset + i;
+                    assert!(index >= 0); //crash if index is bad. at some point proper error handling would be nice
+                    self.resize_for_index(index as usize);
+                    self.memory[index as usize] = src
+                }
             }
         }
     }
