@@ -4,7 +4,7 @@ pub fn day_5() {
     let input: Vec<_> = fs::read_to_string("input/day5.txt")
         .expect("Could not read file!")
         .split(',')
-        .map(str::parse::<i32>)
+        .map(str::parse::<i64>)
         .map(|x| x.unwrap())
         .collect();
     let mut computer1 = intcode::Computer::new(input.clone(), vec![1]);
@@ -18,12 +18,12 @@ pub fn day_5() {
 
 pub mod intcode {
     enum Parameter {
-        Literal(i32),
+        Literal(i64),
         Address(usize),
     }
 
     impl Parameter {
-        fn make_param(mode: i32, val: i32) -> Parameter {
+        fn make_param(mode: i64, val: i64) -> Parameter {
             match mode {
                 0 => Parameter::Address(val as usize),
                 1 => Parameter::Literal(val),
@@ -48,11 +48,11 @@ pub mod intcode {
     /// advent of code 2019. Our implementation also has the ability to suspend itself if it lacks input needed
     /// to continue.
     pub struct Computer {
-        memory: Vec<i32>,
+        memory: Vec<i64>,
         instruction_pointer: usize,
         halt: bool,
-        inputs: Vec<i32>,
-        outputs: Vec<i32>,
+        inputs: Vec<i64>,
+        outputs: Vec<i64>,
         suspend: bool,
     }
 
@@ -60,7 +60,7 @@ pub mod intcode {
         ///Initializes a new intcode computer. `memory` is the initial memory state, and `inputs` is the initial
         /// input stack. Remember that the input buffer is a *stack*, meaning the computer will read from the
         /// given buffer from back to front.
-        pub fn new(memory: Vec<i32>, inputs: Vec<i32>) -> Computer {
+        pub fn new(memory: Vec<i64>, inputs: Vec<i64>) -> Computer {
             Computer {
                 memory,
                 instruction_pointer: 0,
@@ -74,7 +74,7 @@ pub mod intcode {
         ///Runs an intcode computer until it either suspends itself or halts, returning a reference to its
         /// output buffer. You can poll the state of the machine after it returns control with `has_halted` and
         /// `is_suspended`. Will simply return a reference to the output buffer if it's already halted or suspended.
-        pub fn run(&mut self) -> &Vec<i32> {
+        pub fn run(&mut self) -> &Vec<i64> {
             while !(self.halt ||self.suspend) {
                 self.run_step();
             }
@@ -85,7 +85,7 @@ pub mod intcode {
         ///Pushes a new value onto the input stack. Remember that if you call this multiple times between run
         /// statements it will read the values in reverse order, as the input is processed as a LIFO stack.
         /// You must call run again to resume execution after pushing a new value onto the stack.
-        pub fn receive_input(&mut self, input: i32) {
+        pub fn receive_input(&mut self, input: i64) {
             self.inputs.push(input);
             self.suspend = false;
         }
@@ -251,14 +251,14 @@ pub mod intcode {
             }
         }
 
-        fn read_param_value(&self, param: Parameter) -> i32 {
+        fn read_param_value(&self, param: Parameter) -> i64 {
             match param {
                 Parameter::Literal(i) => i,
                 Parameter::Address(i) => self.memory[i],
             }
         }
 
-        fn write_param(&mut self, src: i32, dest: Parameter) {
+        fn write_param(&mut self, src: i64, dest: Parameter) {
             match dest {
                 Parameter::Literal(_) => panic!("Cannot write in immediate mode!!"),
                 Parameter::Address(i) => self.memory[i] = src,

@@ -11,7 +11,7 @@ pub fn day_7() {
     let input: Vec<_> = fs::read_to_string("input/day7.txt")
         .expect("Could not read file!")
         .split(',')
-        .map(str::parse::<i32>)
+        .map(str::parse::<i64>)
         .map(|x| x.unwrap())
         .collect();
 
