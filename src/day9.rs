@@ -20,7 +20,7 @@ pub fn day_9() {
     let mut boost_sensor = intcode::Computer::new(input.clone(), vec![2]);
     let output = boost_sensor.run().to_vec();
 
-    println!("Running with parameter 1:");
+    println!("Running with parameter 2:");
     for line in output {
         println!("{}", line)
     }
