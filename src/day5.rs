@@ -13,7 +13,7 @@ pub fn day_5() {
 
     let mut computer2 = intcode::Computer::new(input.clone(), vec![5]);
     let part2 = computer2.run();
-    println!("The soultion to part 1 is: {}", part2.last().unwrap())
+    println!("The soultion to part 2 is: {}", part2.last().unwrap())
 }
 
 pub mod intcode {
