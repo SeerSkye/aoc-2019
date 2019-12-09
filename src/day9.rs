@@ -13,15 +13,15 @@ pub fn day_9() {
     let output = boost_test.run().to_vec();
 
     println!("Running with parameter 1:");
-    for i in (0..output.len()).rev() {
-        println!("{}", output[i])
+    for line in output {
+        println!("{}", line)
     }
 
     let mut boost_sensor = intcode::Computer::new(input.clone(), vec![2]);
     let output = boost_sensor.run().to_vec();
 
     println!("Running with parameter 1:");
-    for i in (0..output.len()).rev() {
-        println!("{}", output[i])
+    for line in output {
+        println!("{}", line)
     }
 }
