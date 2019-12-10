@@ -187,8 +187,8 @@ fn angle_from_vertical(point: (i32, i32)) -> f64 {
 
 //apparently this isn't in the standard library. welp.
 fn gcd(in_1: i32, in_2: i32) -> i32 {
-    let mut a = in_1;
-    let mut b = in_2;
+    let mut a = in_1.max(in_2);
+    let mut b = in_1.min(in_2);
 
     while b != 0 {
         let tmp = b;
