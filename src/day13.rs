@@ -22,13 +22,12 @@ pub fn day_13 () {
     modified_input.extend_from_slice(&input[1..input.len()]);
 
     //A script of inputs that beats the game, made by hand cause breakout is fun!
-    let mut tas_script: Vec<_> = fs::read_to_string("src/day_13_script.txt")
+    let tas_script: Vec<_> = fs::read_to_string("src/day_13_script.txt")
         .expect("Could not read file!")
         .split(',')
         .map(str::parse::<i64>)
         .map(|x| x.unwrap())
         .collect();
-    tas_script.reverse();
 
     let modified_computer = intcode::Computer::new(modified_input, tas_script);
     let mut with_quarters = ArcadeCabinet::new(modified_computer);

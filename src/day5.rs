@@ -17,6 +17,8 @@ pub fn day_5() {
 }
 
 pub mod intcode {
+    use std::collections::VecDeque;
+
     enum Parameter {
         Literal(i64),
         Address(usize),
@@ -54,7 +56,7 @@ pub mod intcode {
         memory: Vec<i64>,
         instruction_pointer: usize,
         halt: bool,
-        inputs: Vec<i64>,
+        inputs: VecDeque<i64>,
         outputs: Vec<i64>,
         suspend: bool,
         relative_offset: i64,
@@ -69,7 +71,7 @@ pub mod intcode {
                 memory,
                 instruction_pointer: 0,
                 halt: false,
-                inputs,
+                inputs: VecDeque::from(inputs),
                 outputs: Vec::new(),
                 suspend: false,
                 relative_offset: 0
@@ -87,11 +89,10 @@ pub mod intcode {
             &self.outputs
         }
 
-        ///Pushes a new value onto the input stack. Remember that if you call this multiple times between run
-        /// statements it will read the values in reverse order, as the input is processed as a LIFO stack.
-        /// You must call run again to resume execution after pushing a new value onto the stack.
+        ///Pushes a new value onto the input queue.
+        /// You must call run again to resume execution after pushing a new value onto the queue.
         pub fn receive_input(&mut self, input: i64) {
-            self.inputs.push(input);
+            self.inputs.push_back(input);
             self.suspend = false;
         }
 
@@ -125,7 +126,7 @@ pub mod intcode {
                     self.instruction_pointer += 4
                 }
                 Opcode::Read(p1) => {
-                    let input = self.inputs.pop();
+                    let input = self.inputs.pop_front();
 
                     match input {
                         Some(i) => {

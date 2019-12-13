@@ -23,7 +23,7 @@ pub fn day_7() {
         let mut signal = 0;
 
         for i in &permutation {
-            let mut amplifier = intcode::Computer::new(input.clone(), vec![signal, *i]);
+            let mut amplifier = intcode::Computer::new(input.clone(), vec![*i, signal]);
             let output = amplifier.run()[0];
             signal = output;
         }
