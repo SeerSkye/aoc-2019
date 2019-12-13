@@ -63,8 +63,7 @@ pub mod intcode {
 
     impl Computer {
         ///Initializes a new intcode computer. `memory` is the initial memory state, and `inputs` is the initial
-        /// input stack. Remember that the input buffer is a *stack*, meaning the computer will read from the
-        /// given buffer from back to front.
+        /// input queue. 
         pub fn new(memory: Vec<i64>, inputs: Vec<i64>) -> Computer {
             Computer {
                 memory,
