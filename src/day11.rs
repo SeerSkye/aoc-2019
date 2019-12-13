@@ -95,15 +95,15 @@ impl Painter {
 
             let output = self.computer.run();
 
-            //check the second most recent output for the paint instruction
-            match output[output.len() - 2] {
+            //check the first output for the paint instruction
+            match output[0] {
                 0 => self.squares_painted.insert(self.position, Colour::Black),
                 1 => self.squares_painted.insert(self.position, Colour::White),
                 c => panic!("{} is not a colour", c),
             };
 
             //now turn
-            match output.last().unwrap() {
+            match output[1] {
                 0 => { 
                     self.facing = match self.facing {
                         Direction::North => Direction::West,

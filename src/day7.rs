@@ -60,7 +60,7 @@ pub fn day_7() {
             for computer in &mut computers {
                 computer.receive_input(signal);
                 let output = computer.run();
-                signal = *output.last().unwrap(); //the most recent output of a machine is at the back of the output stack.
+                signal = output[0];
             }
         }
 

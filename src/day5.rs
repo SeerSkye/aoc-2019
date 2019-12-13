@@ -57,7 +57,6 @@ pub mod intcode {
         instruction_pointer: usize,
         halt: bool,
         inputs: VecDeque<i64>,
-        outputs: Vec<i64>,
         suspend: bool,
         relative_offset: i64,
     }
@@ -72,21 +71,21 @@ pub mod intcode {
                 instruction_pointer: 0,
                 halt: false,
                 inputs: VecDeque::from(inputs),
-                outputs: Vec::new(),
                 suspend: false,
                 relative_offset: 0
             }
         }
 
-        ///Runs an intcode computer until it either suspends itself or halts, returning a reference to its
-        /// output buffer. You can poll the state of the machine after it returns control with `has_halted` and
-        /// `is_suspended`. Will simply return a reference to the output buffer if it's already halted or suspended.
-        pub fn run(&mut self) -> &Vec<i64> {
+        ///Runs an intcode computer until it either suspends itself or halts, returning a buffer of the outputs accumulated
+        /// You can poll the state of the machine after it returns control with `has_halted` and is_suspended`. 
+        /// If halted it will still return an output buffer, which will be empty.
+        pub fn run(&mut self) -> Vec<i64> {
+            let mut out_buffer = Vec::new();
             while !(self.halt ||self.suspend) {
-                self.run_step();
+                self.run_step(&mut out_buffer);
             }
 
-            &self.outputs
+            out_buffer
         }
 
         ///Pushes a new value onto the input queue.
@@ -106,7 +105,7 @@ pub mod intcode {
             self.suspend
         }
 
-        fn run_step(&mut self) {
+        fn run_step(&mut self, outputs: &mut Vec<i64>) {
             if self.halt {
                 return;
             }
@@ -138,7 +137,7 @@ pub mod intcode {
                 }
                 Opcode::Print(p1) => {
                     let val = self.read_param_value(p1);
-                    self.outputs.push(val);
+                    outputs.push(val);
                     self.instruction_pointer += 2
                 }
                 Opcode::JumpNonZero(p1, p2) => {
