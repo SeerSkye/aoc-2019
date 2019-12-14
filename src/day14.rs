@@ -25,9 +25,23 @@ pub fn day_14() {
 
     //for part two, scale the starting equation by some amount, then reduce. Binary search to try and find the
     //exact scaling factor that maximizes fuel under the cap.
-    let mut additional_fuel = 0;
-    //starting step size for a binary search approach
-    let mut step_size: i64 = 262_144;
+
+    //First, we reduce the equation scaled by the fuel we know we can produce, then use that to generate an initial guess for
+    //the amount of additional fuel we can make
+    let mut est_eq = original_eq.clone();
+    est_eq.scale_eq(1_000_000_000_000 / ore_for_exactly_1_fuel);
+    reduce(&mut est_eq, &equations);
+
+    //the ore per fuel here is most likely more accurate than the pt1 solution
+    let est_ore_per_fuel = *est_eq.lhs.get("ORE").unwrap() as f64
+        / (1_000_000_000_000.0 / *ore_for_exactly_1_fuel as f64) as f64;
+    //so use it as the guess
+    let mut additional_fuel = ((1_000_000_000_000.0 / est_ore_per_fuel as f64)
+        - (1_000_000_000_000.0 / *ore_for_exactly_1_fuel as f64))
+        as u64;
+
+    //starting step size for a binary search approach. Our guess is really close, so the starting step is small
+    let mut step_size: i64 = 4;
 
     loop {
         let mut scaled_eq = original_eq.clone();
