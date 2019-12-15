@@ -13,6 +13,7 @@ mod day11;
 mod day12;
 mod day13;
 mod day14;
+mod day15;
 
 fn main() {
     /*println!("--- Day 1 ---");
@@ -52,8 +53,11 @@ fn main() {
     day12::day_12();
 
     println!("--- Day 13 ---");
-    day13::day_13();*/
+    day13::day_13();
 
     println!("--- Day 14 ---");
-    day14::day_14();
+    day14::day_14();*/
+
+    println!("--- Day 15 ---");
+    day15::day_15();
 }
