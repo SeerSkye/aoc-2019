@@ -52,6 +52,7 @@ pub mod intcode {
     ///An intcode computer. Intcode computers operate according to the specification from the problems in
     /// advent of code 2019. Our implementation also has the ability to suspend itself if it lacks input needed
     /// to continue.
+    #[derive(Clone)]
     pub struct Computer {
         memory: Vec<i64>,
         instruction_pointer: usize,
