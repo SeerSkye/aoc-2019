@@ -107,7 +107,7 @@ pub fn day_16() {
 /// 5 -> sum([5..=8])
 /// 6 -> sum([6..=8])
 /// 7 -> sum([7..=8])
-/// 8 -> som([8])
+/// 8 -> sum([8])
 /// 
 /// The only hard part left is determining the values left over. For that we use our floor((n - i)/(i+1)) % 4 == 0 
 /// to generate a list of indexes that a given number affects ahead of it in the list. In order to save time we
