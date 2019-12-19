@@ -217,7 +217,7 @@ impl Graph {
         let mut priority_queue: BinaryHeap<SearchNode> = BinaryHeap::new();
         priority_queue.push(Reverse((0, start_nodes.to_vec(), start_nodes.to_vec())));
 
-        //nodes_visited keeps track of the a node + keyset pair, so we don't spin in circles
+        //nodes_visited keeps track of a node + keyset pair, so we don't spin in circles
         //too much.
         let mut nodes_visited: HashSet<(SquareType, Vec<SquareType>)> = HashSet::new();
 
