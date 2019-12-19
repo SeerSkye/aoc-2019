@@ -1,5 +1,5 @@
 use std::cmp::Reverse;
-use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::fs;
 use std::ops::{Add, Sub};
 
@@ -124,104 +124,59 @@ impl Board {
         Board(board)
     }
 
-    //finds the distance between 2 points using a*, if it's possible. We consider any non empty space a blockage
-    //(unless it's on the endpoints) because I plan to use this to collapse the map into a simpler graph
-    //bewteen start and key/door nodes
-    fn distance(&self, p1: Point, p2: Point) -> Option<i32> {
-        //first, make sure both points are actually on the map:
-        if !self.0.contains_key(&p1) || !self.0.contains_key(&p2) {
-            return None;
-        }
+    fn nodes_and_distances_from_point (&self, start: Point) -> Vec<Edge> {
+        let mut edges = Vec::new();
+        let mut node_queue: VecDeque<Point> = VecDeque::new();
+        node_queue.push_back(start + Point(0, -1));
+        node_queue.push_back(start + Point(0, 1));
+        node_queue.push_back(start + Point(1, 0));
+        node_queue.push_back(start + Point(-1, 0));
 
-        //make a min priority queue to hold the nodes to search
-        let mut node_heap: BinaryHeap<Reverse<(i32, Point)>> = BinaryHeap::new();
-        node_heap.push(Reverse((0, p1)));
+        let mut visited_nodes = HashSet::new();
+        visited_nodes.insert(start);
 
-        //the best distance found to a position. Every position in heap
-        //should have a corresponding distance
-        let mut best_distance_found: HashMap<Point, i32> = HashMap::new();
-        best_distance_found.insert(p1, 0);
+        //similar bfs as I've been doing a lot this AoC
+        let mut curr_distance = 1;
+        let mut nodes_at_curr_distance = 4;
+        let mut nodes_at_next_distance = 0;
 
-        while !node_heap.is_empty() {
-            let Reverse((_, curr_node)) = node_heap.pop().unwrap();
+        while !node_queue.is_empty() {
+            let curr_node = node_queue.pop_front().unwrap();
+            visited_nodes.insert(curr_node);
 
-            let &curr_best_dist = best_distance_found.get(&curr_node).unwrap();
-
-            let n_point = curr_node + Point(0, -1);
-            let s_point = curr_node + Point(0, 1);
-            let e_point = curr_node + Point(1, 0);
-            let w_point = curr_node + Point(-1, 0);
-
-            //check if done, and add if not for each point
-            if n_point == p2 || s_point == p2 || e_point == p2 || w_point == p2 {
-                return Some(curr_best_dist + 1);
-            }
-            self.add_node_to_queue(
-                &mut node_heap,
-                &mut best_distance_found,
-                n_point,
-                p1,
-                curr_best_dist + 1,
-            );
-            self.add_node_to_queue(
-                &mut node_heap,
-                &mut best_distance_found,
-                s_point,
-                p1,
-                curr_best_dist + 1,
-            );
-            self.add_node_to_queue(
-                &mut node_heap,
-                &mut best_distance_found,
-                e_point,
-                p1,
-                curr_best_dist + 1,
-            );
-            self.add_node_to_queue(
-                &mut node_heap,
-                &mut best_distance_found,
-                w_point,
-                p1,
-                curr_best_dist + 1,
-            );
-        }
-
-        None
-    }
-
-    //helper fn for a*
-    fn add_node_to_queue(
-        &self,
-        node_heap: &mut BinaryHeap<Reverse<(i32, Point)>>,
-        best_distance_found: &mut HashMap<Point, i32>,
-        node: Point,
-        dest: Point,
-        candidate_dist: i32,
-    ) {
-        if let Some(&t_n) = self.0.get(&node) {
-            if t_n == SquareType::Empty {
-                //have we seen the node before?
-                if let Some(&known_dist) = best_distance_found.get(&node) {
-                    //check if we found a better path to the node
-                    if candidate_dist < known_dist {
-                        best_distance_found.insert(node, candidate_dist);
-
-                        //if we did, add it back onto the queue
-                        node_heap.push(Reverse((
-                            candidate_dist + node.manhattan_distace(dest),
-                            node,
-                        )));
+            if let Some(ty) = self.0.get(&curr_node) {
+                match ty {
+                    SquareType::Empty => {
+                        if !visited_nodes.contains(&(curr_node + Point(0, -1))) {
+                            node_queue.push_back(curr_node + Point(0, -1));
+                            nodes_at_next_distance += 1
+                        }
+                        if !visited_nodes.contains(&(curr_node + Point(0, 1))) {
+                            node_queue.push_back(curr_node + Point(0, 1));
+                            nodes_at_next_distance += 1
+                        }
+                        if !visited_nodes.contains(&(curr_node + Point(1, 0))) {
+                            node_queue.push_back(curr_node + Point(1, 0));
+                            nodes_at_next_distance += 1
+                        }
+                        if !visited_nodes.contains(&(curr_node + Point(-1, 0))) {
+                            node_queue.push_back(curr_node + Point(-1, 0));
+                            nodes_at_next_distance += 1
+                        }
                     }
-                } else {
-                    //we havent visited n_point yet, so add it
-                    best_distance_found.insert(node, candidate_dist);
-                    node_heap.push(Reverse((
-                        candidate_dist + node.manhattan_distace(dest),
-                        node,
-                    )));
+                    t => edges.push(Edge{key: *t, dist: curr_distance}),
                 }
             }
-        };
+
+            nodes_at_curr_distance -= 1;
+            if nodes_at_curr_distance == 0 {
+                curr_distance += 1;
+                nodes_at_curr_distance = nodes_at_next_distance;
+                nodes_at_next_distance = 0;
+            }
+        }
+
+        edges
     }
 }
 
@@ -250,18 +205,9 @@ impl Graph {
         while !ne_nodes.is_empty() {
             let (&curr_pos, &curr_key) = ne_nodes.pop().unwrap();
 
-            for (&pos, &key) in ne_nodes.iter() {
-                //if the nodes are reachable from each other add the edge in both directions
-                if let Some(dist) = board.distance(curr_pos, pos) {
-                    let curr_edge_lst = graph.entry(curr_key).or_default();
-                    curr_edge_lst.push(Edge { key, dist });
-                    let tar_edge_list = graph.entry(key).or_default();
-                    tar_edge_list.push(Edge {
-                        key: curr_key,
-                        dist,
-                    });
-                }
-            }
+            let edges = board.nodes_and_distances_from_point(curr_pos);
+
+            graph.insert(curr_key, edges);
         }
 
         Graph { graph }
