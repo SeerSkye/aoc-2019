@@ -16,6 +16,8 @@ mod day14;
 mod day15;
 mod day16;
 mod day17;
+//mod day18; //skipped for now
+mod day19;
 
 fn main() {
     /*println!("--- Day 1 ---");
@@ -61,11 +63,17 @@ fn main() {
     day14::day_14();
 
     println!("--- Day 15 ---");
-    day15::day_15();*/
+    day15::day_15();
 
     //println!("--- Day 16 ---");
-    //day16::day_16(); extra comment this out, takes 11.5 hours */
+    //day16::day_16(); extra comment this out, takes 11.5 hours
 
     println!("--- Day 17 ---");
     day17::day_17();
+
+    //println!("--- Day 18 ---");
+    //day18::day_18(); */
+
+    println!("--- Day 19 ---");
+    day19::day_19();
 }
